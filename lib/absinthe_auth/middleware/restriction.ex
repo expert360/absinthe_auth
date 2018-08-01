@@ -50,6 +50,15 @@ defmodule AbsintheAuth.Middleware.Restriction do
     end
   end
 
+  # TODO: This should handle the permissions being a list of typles
+  # rather than a single Map
+  # The trick then will be handling if we have many permissions (say with different scopes)
+  # In that case we should use Enum.any? to see if any of them grant access
+  #
+  # permissions
+  # |> Keyword.get_values(permission)
+  # |> Enum.any?(fn scope -> acl.verify_permission({permission, scope}, requested_scope)
+  #
   defp fetch_permission_from_context(%{context: context}, permission) do
     with %{permissions: permissions} <- context do
       Map.fetch(permissions, permission)

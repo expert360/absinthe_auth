@@ -2,14 +2,6 @@ defmodule AbsintheAuth.Middleware do
   @behaviour Absinthe.Middleware
   @behaviour Absinthe.Plugin
 
-  # TODO: Handle if resolution itself returns an error
-  # e.g. if the resolver returns {:error, "foo"}
-
-  # The approach here is a bit inefficient - we always resolve before
-  # restricting. That's really only needed if the resolved value
-  # is required to make an access decision. Otherwise we shouldn't resolve
-  #
-
   def call(%{definition: definition} = resolution, {module, args}) do
     resolution
     |> module.call(args)

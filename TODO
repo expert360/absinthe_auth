@@ -2,6 +2,7 @@
 - Test putting the permit clause after the resolver
 - Test with other middlewares on a field (or elsewhere)
 - Mutations
+- Rename Middleware.Restriction to Rule.Permit
 - Lists and connections
 - Variables
 - A set of helpers to make permissions easier (to extract args, context etc)
