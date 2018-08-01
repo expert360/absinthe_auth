@@ -5,7 +5,7 @@ defmodule AbsintheAuth.Middleware.Restriction do
   alias AbsintheAuth.Permission
 
   def call(resolution, {permission, opts}) do
-    case check?(resolution, permission, opts) do
+    case check?(resolution, permission, opts) |> IO.inspect(label: "RUN CHECK") do
       true ->
         finish_auth(resolution)
 

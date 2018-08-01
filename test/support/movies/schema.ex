@@ -6,11 +6,18 @@ defmodule Movies.Schema do
   defmodule ACL do
     # TODO: Use a behaviour
 
-    def load_permissions(%{viewer_id: 1}) do
+    def load_permissions(%{viewer_id: "producer"}) do
       # TODO: Probably should be a list
       %{
         producer: Movies.Database.get_movie(1),
         director: Movies.Database.get_movie(2)
+      }
+    end
+
+    def load_permissions(%{viewer_id: "studio_manager"}) do
+      # TODO: Probably should be a list
+      %{
+        creator: :all
       }
     end
 
@@ -20,6 +27,7 @@ defmodule Movies.Schema do
     end
 
     def verify_permission({_grant, :all}, _) do
+      IO.puts("AAA")
       true
     end
 
@@ -64,7 +72,7 @@ defmodule Movies.Schema do
       arg :title, :string
       arg :budget, :integer
 
-      permit :studio
+      permit :creator
 
       resolve fn args, _ ->
         {:ok, Database.create_movie(args)}
@@ -77,6 +85,7 @@ defmodule Movies.Schema do
     field :title, :string
     field :budget, :integer do
       permit :producer
+      #permit :creator TODO
     end
   end
 end
