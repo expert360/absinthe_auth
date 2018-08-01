@@ -41,7 +41,7 @@ defmodule AbsintheAuthTest.MutationTest do
         |> IO.inspect
         |> assert_success
         |> assert_field(["createMovie", "title"], "Infinity War")
-        #|> assert_field(["createMovie", "budget"], 321_000_000) # TODO
+        |> assert_field(["createMovie", "budget"], 321_000_000)
       end) =~ "Creating Movie"
     end
   end

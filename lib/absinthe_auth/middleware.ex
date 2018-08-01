@@ -9,60 +9,77 @@ defmodule AbsintheAuth.Middleware do
   # restricting. That's really only needed if the resolved value
   # is required to make an access decision. Otherwise we shouldn't resolve
   #
-  def _call(%{state: :unresolved, definition: definition} = resolution, args) do
-    case resolution.middleware do
-      [{{Absinthe.Resolution, :call}, fun} | rest] ->
-        # Force resolving if it hasn't happened already
-        # FIXME: This will only work if there are no other middlewares on
-        # the field (i.e. the resolver is the next middleware)
-        # We could possibly traverse the list and remove
-        # BUT we probably only need to do this if resolution
-        # has not yet completed
 
-        new_res = Absinthe.Resolution.call(resolution, fun)
-        call(%{new_res | middleware: rest}, args)
+  def call(%{definition: definition} = resolution, {module, args}) do
+    IO.puts("\n\n** Checking: #{definition.name} **, #{inspect module} #{inspect args}\n")
 
-      [] ->
-        field = String.to_atom(definition.name)
-        new_res = Absinthe.Middleware.MapGet.call(resolution, field)
-        call(new_res, args)
+    resolution = apply(module, :call, [resolution, args])
+
+    IO.inspect(resolution.middleware, label: "Remaining middleware")
+    IO.inspect(resolution.context)
+    maybe_continue_authorisation(resolution)
+  end
+
+  def maybe_continue_authorisation(%{context: %{authorisation: :done}} = resolution) do
+    if pending_authorisation_checks?(resolution) do
+      resolution
+    else
+      resolution
+      |> finish_authorisation
+      |> maybe_push_middleware
     end
   end
 
-  def call(%{state: :unresolved, definition: definition} = resolution, args) do
+  def maybe_continue_authorisation(%{context: %{authorisation: :pending}} = resolution) do
+    if pending_authorisation_checks?(resolution) do
+      resolution
+    else
+      resolution
+      |> finish_authorisation
+      |> Absinthe.Resolution.put_result({:error, "Denied"})
+    end
+  end
 
-    IO.inspect(resolution.middleware, label: "UNRESOLVED")
-
+  def maybe_push_middleware(%{definition: definition} = resolution) do
     case resolution.middleware do
-      #[{{Absinthe.Resolution, :call}, fun} | rest] ->
-
       [_ | _] ->
-        # Force resolving if it hasn't happened already
-        # FIXME: This will only work if there are no other middlewares on
-        # the field (i.e. the resolver is the next middleware)
-        # We could possibly traverse the list and remove
-        # BUT we probably only need to do this if resolution
-        # has not yet completed
-
-        #new_res = Absinthe.Resolution.call(resolution, fun)
-
-        go(resolution, args)
+        resolution
 
       [] ->
         field = String.to_atom(definition.name)
-        #new_res = Absinthe.Middleware.MapGet.call(resolution, field)
-        go(%{resolution | middleware: [{Absinthe.Middleware.MapGet, field}]}, args)
+        # Insert default middleware
+
+        resolution
+        |> push_middleware({Absinthe.Middleware.MapGet, field})
     end
   end
-
 
   # TODO: storing the authorisation state might be better in the private field
-  def go(resolution, {module, args}) do
-    %{
-      resolution
-      | context: Map.put(resolution.context, :authorisation, :pending),
-      middleware: [{module, args} | resolution.middleware] |> IO.inspect(label: "middleware")
-    }
+
+  def pending_authorisation_checks?(%{middleware: middleware}) do
+    IO.inspect(middleware, label: "PENDING CHECKS") 
+    Enum.any?(middleware, fn
+      {{AbsintheAuth.Middleware, :call},_} ->
+        true
+      _ ->
+        false
+    end)
+  end
+
+  defp start_authorisation(%{context: %{authorisation: _}} = resolution) do
+    # Don't set authorisation state if it is already set
+    resolution
+  end
+  defp start_authorisation(resolution) do
+    %{resolution | context: Map.put(resolution.context, :authorisation, :pending)}
+  end
+
+  defp finish_authorisation(resolution) do
+    %{resolution | context: Map.delete(resolution.context, :authorisation)}
+  end
+
+  defp push_middleware(resolution, middleware) do
+    %{resolution | middleware: [middleware | resolution.middleware]}
   end
 
   def after_resolution(exec) do
@@ -82,12 +99,7 @@ defmodule AbsintheAuth.Middleware do
     pipeline
   end
 
-  def _pipeline(pipeline, %{context: context}) do
-    with %{authorisation: :pending} <- context do
-      [Absinthe.Phase.Document.Execution.Resolution | pipeline]
-    else
-      _ ->
-        pipeline
-    end
+  defp flush_middleware(resolution) do
+    %{resolution | middleware: []}
   end
 end

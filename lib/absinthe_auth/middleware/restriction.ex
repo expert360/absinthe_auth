@@ -5,14 +5,16 @@ defmodule AbsintheAuth.Middleware.Restriction do
   alias AbsintheAuth.Permission
 
   def call(resolution, {permission, opts}) do
-    case check?(resolution, permission, opts) |> IO.inspect(label: "RUN CHECK") do
+    IO.puts("Checking Permission: #{permission}")
+
+    case check?(resolution, permission, opts) do
       true ->
-        finish_auth(resolution)
+        IO.puts("...true")
+        auth_success(resolution)
 
       false ->
-        resolution
-        |> finish_auth
-        |> Resolution.put_result({:error, "Denied"})
+        IO.puts("...false")
+        auth_pending(resolution)
     end
   end
 
@@ -49,8 +51,6 @@ defmodule AbsintheAuth.Middleware.Restriction do
   end
 
   defp fetch_permission_from_context(%{context: context}, permission) do
-    IO.inspect(context, label: "Context")
-
     with %{permissions: permissions} <- context do
       Map.fetch(permissions, permission)
     else
@@ -59,7 +59,14 @@ defmodule AbsintheAuth.Middleware.Restriction do
     end
   end
 
-  defp finish_auth(resolution) do
+  defp auth_success(resolution) do
     %{resolution | context: Map.put(resolution.context, :authorisation, :done)}
+  end
+
+  defp auth_pending(%{context: %{authorisation: :done}} = resolution) do
+    resolution
+  end
+  defp auth_pending(resolution) do
+    %{resolution | context: Map.put(resolution.context, :authorisation, :pending)}
   end
 end

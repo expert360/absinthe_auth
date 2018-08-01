@@ -30,6 +30,7 @@ defmodule AbsintheAuthTest.ListTest do
     test "budget is visible on movies she produced", %{context: context} do
       @query
       |> Absinthe.run(Movies.Schema, context: context)
+      |> IO.inspect
       |> assert_success
       |> assert_field(["movies", 0, "budget"], 63_000_000)
       |> assert_field_error(["movies", 1, "budget"], "Denied")

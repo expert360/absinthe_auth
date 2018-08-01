@@ -27,19 +27,14 @@ defmodule Movies.Schema do
     end
 
     def verify_permission({_grant, :all}, _) do
-      IO.puts("AAA")
       true
     end
 
     def verify_permission({_grant, scope}, requested_scope) when is_atom(requested_scope) do
-      IO.inspect(scope, label: "scope")
-      IO.inspect(requested_scope, label: "requested scope")
       false
     end
 
     def verify_permission({grant, scope}, requested_scope) do
-      IO.inspect(scope, label: "scope")
-      IO.inspect(requested_scope, label: "requested scope")
       scope == requested_scope
     end
   end
@@ -85,7 +80,7 @@ defmodule Movies.Schema do
     field :title, :string
     field :budget, :integer do
       permit :producer
-      #permit :creator TODO
+      permit :creator
     end
   end
 end
