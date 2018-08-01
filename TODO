@@ -1,0 +1,14 @@
+- Test a field with a custom resolver
+- Test putting the permit clause after the resolver
+- Test with other middlewares on a field (or elsewhere)
+- Mutations
+- Lists and connections
+- Variables
+- A set of helpers to make permissions easier (to extract args, context etc)
+- A plug to set the permissions in the context
+- Move authorisation state to a private field
+- Docs!
+
+Other ideas to consider later
+- Passing functions to allow/allow_only
+- Multiple rules for a field (allow, deny, allow_all/deny_all etc)

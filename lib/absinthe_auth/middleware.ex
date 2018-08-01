@@ -11,13 +11,9 @@ defmodule AbsintheAuth.Middleware do
   #
 
   def call(%{definition: definition} = resolution, {module, args}) do
-    IO.puts("\n\n** Checking: #{definition.name} **, #{inspect module} #{inspect args}\n")
-
-    resolution = apply(module, :call, [resolution, args])
-
-    IO.inspect(resolution.middleware, label: "Remaining middleware")
-    IO.inspect(resolution.context)
-    maybe_continue_authorisation(resolution)
+    resolution
+    |> module.call(args)
+    |> maybe_continue_authorisation
   end
 
   def maybe_continue_authorisation(%{context: %{authorisation: :done}} = resolution) do
@@ -57,21 +53,12 @@ defmodule AbsintheAuth.Middleware do
   # TODO: storing the authorisation state might be better in the private field
 
   def pending_authorisation_checks?(%{middleware: middleware}) do
-    IO.inspect(middleware, label: "PENDING CHECKS") 
     Enum.any?(middleware, fn
       {{AbsintheAuth.Middleware, :call},_} ->
         true
       _ ->
         false
     end)
-  end
-
-  defp start_authorisation(%{context: %{authorisation: _}} = resolution) do
-    # Don't set authorisation state if it is already set
-    resolution
-  end
-  defp start_authorisation(resolution) do
-    %{resolution | context: Map.put(resolution.context, :authorisation, :pending)}
   end
 
   defp finish_authorisation(resolution) do

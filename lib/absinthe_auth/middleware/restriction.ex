@@ -4,17 +4,17 @@ defmodule AbsintheAuth.Middleware.Restriction do
   alias Absinthe.Resolution
   alias AbsintheAuth.Permission
 
+  # No need to perform additional checks
+  # if an authorisation outcome has already been determined
+  def call(%{context: %{authorisation: :done}} = resolution, _) do
+    resolution
+  end
+
   def call(resolution, {permission, opts}) do
-    IO.puts("Checking Permission: #{permission}")
-
-    case check?(resolution, permission, opts) do
-      true ->
-        IO.puts("...true")
-        auth_success(resolution)
-
-      false ->
-        IO.puts("...false")
-        auth_pending(resolution)
+    if check?(resolution, permission, opts) do
+      auth_success(resolution)
+    else
+      auth_pending(resolution)
     end
   end
 
