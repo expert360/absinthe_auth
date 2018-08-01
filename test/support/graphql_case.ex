@@ -28,13 +28,14 @@ defmodule AbsintheAuthTest.GraphQLCase do
         )
         res
       end
-      def assert_field_error({:ok, _} = res, _, _) do
+      def assert_field_error(res, _, _) do
         flunk "No errors in query response"
         res
       end
 
       def assert_field({:ok, %{data: data}} = res, target_path, value) do
         assert get_in(data, expand_path(target_path)) == value
+        res
       end
 
       defp expand_path(path) do

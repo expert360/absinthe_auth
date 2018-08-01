@@ -42,8 +42,13 @@ defmodule AbsintheAuth.Middleware do
     exec
   end
 
-  def before_resolution(exec) do
-    exec
+  def before_resolution(%{context: context} = exec) do
+    context =
+      with %{acl: acl} <- context do
+        Map.put(context, :permissions, acl.load_permissions(context))
+      end
+
+    %{exec | context: context}
   end
 
   def pipeline(pipeline, %{context: context}) do

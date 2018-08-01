@@ -1,76 +1,57 @@
 defmodule AbsintheAuthTest do
   use AbsintheAuthTest.GraphQLCase
+  import AbsintheAuthTest.SetupHelpers
   doctest AbsintheAuth
 
-  describe "querying a single record" do
-    @query """
-      {
-        movie(id: 1) {
-          title
-          budget
-        }
-      }
-    """
-    test "is successful" do
-      Movies.Schema
-      |> run_query(@query)
-      |> assert_success
-    end
+  alias Movies.Schema
 
-    test "has budget restricted by default" do
+  @query """
+    query movieById($id: ID!) {
+      movie(id: $id) {
+        title
+        budget
+      }
+    }
+  """
+
+  describe "when the viewer is not set (logged out)" do
+    test "movie budget is restricted" do
       @query
-      |> Absinthe.run(Movies.Schema)
+      |> Absinthe.run(Movies.Schema, variables: %{"id" => 1})
       |> assert_success
       |> assert_field_error(["movie", "budget"], "Denied")
     end
 
-    test "has budget visible with the producer permission" do
+    test "movie title is visible" do
       @query
-      |> Absinthe.run(Movies.Schema, context: %{permissions: [:producer]})
+      |> Absinthe.run(Movies.Schema, variables: %{"id" => 1})
       |> assert_success
-      |> assert_field(["movie", "budget"], 63_000_000)
-    end
-
-    test "has title visible" do
-      @query
-      |> Absinthe.run(Movies.Schema)
       |> assert_field(["movie", "title"], "The Matrix")
     end
   end
 
-  describe "querying list of records" do
-    @query """
-      {
-        movies {
-          title
-          budget
-        }
-      }
-    """
-    test "is successful" do
-      Movies.Schema
-      |> run_query(@query)
+  describe "when the viewer is a producer" do
+    setup [:viewer_is_producer]
+
+    test "budget is restricted for a movie she didn't produce", %{context: context} do
+      @query
+      |> Absinthe.run(Movies.Schema, variables: %{"id" => 2}, context: context)
       |> assert_success
+      |> assert_field_error(["movie", "budget"], "Denied")
+      |> assert_field(["movie", "title"], "Star Wars")
     end
 
-    test "has budget restricted by default on all records" do
+    test "budget is visible for a movie she produced", %{context: context} do
       @query
-      |> Absinthe.run(Movies.Schema)
+      |> Absinthe.run(Movies.Schema, variables: %{"id" => 1}, context: context)
       |> assert_success
-      |> assert_field_error(["movies", 0, "budget"], "Denied")
-      |> assert_field_error(["movies", 1, "budget"], "Denied")
-      |> assert_field_error(["movies", 2, "budget"], "Denied")
-      |> assert_field_error(["movies", 3, "budget"], "Denied")
-    end
-
-    test "has budget visible on records where the current user is the producer" do
-      @query
-      |> Absinthe.run(Movies.Schema) # TODO: perms or current user?
-      |> assert_success
-      |> assert_field_error(["movies", 0, "budget"], "Denied")
-      |> assert_field_error(["movies", 1, "budget"], "Denied")
-      |> assert_field_error(["movies", 2, "budget"], "Denied")
-      |> assert_field_error(["movies", 3, "budget"], "Denied")
+      |> assert_field(["movie", "budget"], 63_000_000)
+      |> assert_field(["movie", "title"], "The Matrix")
     end
   end
+
+  # TODO: More tests
+  # - test a director role that has access to genre object field
+  # - and with the :all context
+  # - and with a custom context
 end
