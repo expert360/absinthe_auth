@@ -29,6 +29,11 @@ defmodule Movies.ACL do
     false
   end
 
+  # Any grant with a scope that matches the requested scope
+  # is verified.
+  #
+  # e.g. verify_permission({:producer, %Movie{...}}, %Movie{...})
+  #
   def verify_permission({_grant, scope}, requested_scope) do
     scope == requested_scope
   end
