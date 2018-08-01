@@ -38,9 +38,9 @@ defmodule AbsintheAuth.Middleware.Restriction do
   end
 
   # TODO: Create types
-  defp verify_permission(resolution, permission, requested_scope) do
+  defp verify_permission(resolution, {permission, scope}, requested_scope) do
     with {:ok, acl} <- load_acl(resolution) do
-      acl.verify_permission(permission, requested_scope)
+      acl.verify_permission({permission, scope}, requested_scope)
     else
       _ ->
         false
