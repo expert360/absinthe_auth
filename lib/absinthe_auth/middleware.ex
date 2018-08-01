@@ -2,7 +2,7 @@ defmodule AbsintheAuth.Middleware do
   @behaviour Absinthe.Middleware
   @behaviour Absinthe.Plugin
 
-  def call(%{definition: definition} = resolution, {module, args}) do
+  def call(resolution, {module, args}) do
     resolution
     |> module.call(args)
     |> maybe_continue_authorisation

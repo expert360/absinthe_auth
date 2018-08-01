@@ -1,9 +1,6 @@
 defmodule AbsintheAuth.Middleware.Restriction do
   @behaviour Absinthe.Middleware
 
-  alias Absinthe.Resolution
-  alias AbsintheAuth.Permission
-
   # No need to perform additional checks
   # if an authorisation outcome has already been determined
   def call(%{context: %{authorisation: :done}} = resolution, _) do
