@@ -12,28 +12,12 @@ defmodule AbsintheAuth do
     end
   end
 
-  defmacro allow_only(permissions) do
+  defmacro permit(permission, opts \\ []) do
     quote do
-      Notation.middleware(Middleware, {Middleware.Restriction, List.wrap(unquote(permissions))})
+      Notation.middleware(
+        Middleware,
+        {Middleware.Restriction, {unquote(permission), unquote(opts)}}
+      )
     end
   end
-
-  defmacro visible do
-    quote do
-      Notation.middleware(Middleware, {Middleware.Visible, []})
-    end
-  end
-
-  # TODO: Investigate if this is possible as an alternative syntax
-  # 
-  # field :name, controlled(:string, only: [:admin, :owner])
-  #
-  # This would require putting the auth logic into the field parsers
-  # rather than a middleware which may not make sense?
-  #
-  #defmacro controlled(type, only: only) do
-  #  quote do
-  #    unquote(type)
-  #  end
-  #end
 end
