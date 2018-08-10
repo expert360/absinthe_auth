@@ -12,11 +12,20 @@ defmodule AbsintheAuth do
     end
   end
 
+  defmacro policy(module, func, opts \\ []) do
+    quote do
+      Notation.middleware(
+        Middleware,
+        {Middleware.Policy, {unquote(module), unquote(func), unquote(opts)}}
+      )
+    end
+  end
+
   defmacro permit(permission, opts \\ []) do
     quote do
       Notation.middleware(
         Middleware,
-        {Middleware.Restriction, {unquote(permission), unquote(opts)}}
+        {Middleware.Permit, {unquote(permission), unquote(opts)}}
       )
     end
   end

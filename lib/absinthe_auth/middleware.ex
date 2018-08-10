@@ -8,7 +8,7 @@ defmodule AbsintheAuth.Middleware do
     |> maybe_continue_authorisation
   end
 
-  def maybe_continue_authorisation(%{context: %{authorisation: :done}} = resolution) do
+  def maybe_continue_authorisation(%{private: %{authorisation: :done}} = resolution) do
     if pending_authorisation_checks?(resolution) do
       resolution
     else
@@ -18,7 +18,7 @@ defmodule AbsintheAuth.Middleware do
     end
   end
 
-  def maybe_continue_authorisation(%{context: %{authorisation: :pending}} = resolution) do
+  def maybe_continue_authorisation(%{private: %{authorisation: :pending}} = resolution) do
     if pending_authorisation_checks?(resolution) do
       resolution
     else
@@ -26,6 +26,13 @@ defmodule AbsintheAuth.Middleware do
       |> finish_authorisation
       |> Absinthe.Resolution.put_result({:error, "Denied"})
     end
+  end
+
+  def maybe_continue_authorisation(resolution) do
+    # No explicit authorisation took place - maybe we don't deny this?
+    resolution
+    |> finish_authorisation
+    |> Absinthe.Resolution.put_result({:error, "Denied"})
   end
 
   def maybe_push_middleware(%{definition: definition} = resolution) do
@@ -53,8 +60,8 @@ defmodule AbsintheAuth.Middleware do
     end)
   end
 
-  defp finish_authorisation(resolution) do
-    %{resolution | context: Map.delete(resolution.context, :authorisation)}
+  defp finish_authorisation(%{private: private} = resolution) do
+    %{resolution | private: Map.delete(private, :authorisation)}
   end
 
   defp push_middleware(resolution, middleware) do
