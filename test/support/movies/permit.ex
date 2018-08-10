@@ -2,34 +2,40 @@ defmodule Movies.Policy.Permit do
   use AbsintheAuth.Policy
   alias Movies.Movie
 
-  def view(%{context: %{viewer_id: "producer"}} = resolution, %Movie{id: 1}, _opts) do
+  # TODO: How do we differentiate between checking for args given (before resolution)
+  # vs the object resolved (after resolution)?
+
+  def budget(%{context: %{viewer_id: "producer"}} = resolution, %Movie{id: 1}, _opts) do
     allow!(resolution)
   end
-
-  def view(%{context: %{viewer_id: "studio_manager"}} = resolution, %Movie{}, _opts) do
+  def budget(%{context: %{viewer_id: "studio_manager"}} = resolution, %Movie{}, _opts) do
     allow!(resolution)
   end
+  def budget(resolution, _, _) do
+    deny!(resolution)
+  end
 
+  # TODO: Create a test that allows us to check args - maybe in the create? (multiple studios?)
   def _view(%{context: %{viewer_id: "producer"}} = resolution, _, _) do
-  
-
-    IO.inspect(arg(resolution, :id), label: "AAAA")
-    deny!(resolution)
-  end
-
-  def view(resolution, _, _) do
-    deny!(resolution)
-  end
-
-  def create(%{context: %{viewer_id: "studio_manager"}} = resolution, _, _opts) do
-    if is_mutation?(resolution) do
+    if arg(resolution, :id) == "1" do
       allow!(resolution)
     else
-      defer(resolution)
+      deny!(resolution)
     end
   end
 
-  def create(resolution, _, _) do
+  def view(resolution, _) do
+    allow!(resolution)
+  end
+
+  def view(resolution, _obj, _) do
+    allow!(resolution)
+  end
+
+  def create(%{context: %{viewer_id: "studio_manager"}} = resolution, _opts) do
+    allow!(resolution)
+  end
+  def create(resolution, _) do
     deny!(resolution)
   end
 end

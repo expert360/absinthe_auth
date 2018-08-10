@@ -17,7 +17,7 @@ defmodule Movies.Schema do
 
     field :movie, :movie do
       arg :id, non_null(:id)
-      #policy Permit, :view
+      policy Permit, :view
 
       resolve fn %{id: id}, _ ->
         {:ok, Database.get_movie(id)}
@@ -42,7 +42,7 @@ defmodule Movies.Schema do
     field :id, non_null(:id)
     field :title, :string
     field :budget, :integer do
-      policy Permit, :view
+      policy Permit, :budget
     end
     field :genre, :genre do
       resolve fn _, _ ->

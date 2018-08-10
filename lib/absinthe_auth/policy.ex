@@ -23,6 +23,8 @@ defmodule AbsintheAuth.Policy do
   end
 
   def arg(resolution, arg) do
+    # TODO: Ideally we'd cast the argument to the type defined in the schema
+    # (By default we get a string here)
     get_in(resolution.arguments, List.wrap(arg))
   end
 end
