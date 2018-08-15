@@ -10,6 +10,8 @@ defmodule Movies.Schema do
 
   query do
     field :movies, list_of(:movie) do
+      policy Permit, :view
+
       resolve fn _, _ ->
         {:ok, Database.get_movies()}
       end

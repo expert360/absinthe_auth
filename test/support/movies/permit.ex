@@ -2,9 +2,6 @@ defmodule Movies.Policy.Permit do
   use AbsintheAuth.Policy
   alias Movies.Movie
 
-  # TODO: How do we differentiate between checking for args given (before resolution)
-  # vs the object resolved (after resolution)?
-
   def budget(%{context: %{viewer_id: "producer"}} = resolution, %Movie{id: 1}, _opts) do
     allow!(resolution)
   end
@@ -27,7 +24,6 @@ defmodule Movies.Policy.Permit do
   def view(resolution, _) do
     allow!(resolution)
   end
-
   def view(resolution, _obj, _) do
     allow!(resolution)
   end
