@@ -1,18 +1,17 @@
 defmodule Movies.Schema do
   use Absinthe.Schema
   use AbsintheAuth
-  alias Movies.{ACL, Database}
+  alias Movies.Database
+  alias Movies.Policy.Permit
 
   def plugins do
     [AbsintheAuth.Middleware] ++ Absinthe.Plugin.defaults()
   end
 
-  def context(context) do
-    Map.put(context, :acl, ACL)
-  end
-
   query do
     field :movies, list_of(:movie) do
+      policy Permit, :view
+
       resolve fn _, _ ->
         {:ok, Database.get_movies()}
       end
@@ -20,6 +19,8 @@ defmodule Movies.Schema do
 
     field :movie, :movie do
       arg :id, non_null(:id)
+      policy Permit, :view
+
       resolve fn %{id: id}, _ ->
         {:ok, Database.get_movie(id)}
       end
@@ -31,7 +32,7 @@ defmodule Movies.Schema do
       arg :title, :string
       arg :budget, :integer
 
-      permit :creator
+      policy Permit, :create
 
       resolve fn args, _ ->
         {:ok, Database.create_movie(args)}
@@ -43,8 +44,7 @@ defmodule Movies.Schema do
     field :id, non_null(:id)
     field :title, :string
     field :budget, :integer do
-      permit :producer
-      permit :creator
+      policy Permit, :budget
     end
     field :genre, :genre do
       resolve fn _, _ ->
