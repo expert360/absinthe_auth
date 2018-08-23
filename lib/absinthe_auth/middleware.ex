@@ -1,4 +1,5 @@
 defmodule AbsintheAuth.Middleware do
+  @moduledoc false
   @behaviour Absinthe.Middleware
   @behaviour Absinthe.Plugin
 
@@ -72,20 +73,11 @@ defmodule AbsintheAuth.Middleware do
     exec
   end
 
-  def before_resolution(%{context: context} = exec) do
-    context =
-      with %{acl: acl} <- context do
-        Map.put(context, :permissions, acl.load_permissions(context))
-      end
-
-    %{exec | context: context}
+  def before_resolution(exec) do
+    exec
   end
 
   def pipeline(pipeline, _) do
     pipeline
-  end
-
-  defp flush_middleware(resolution) do
-    %{resolution | middleware: []}
   end
 end

@@ -1,4 +1,5 @@
 defmodule AbsintheAuth.Middleware.Policy do
+  @moduledoc false
   @behaviour Absinthe.Middleware
 
   # TODO: Handle FunctionClauseError

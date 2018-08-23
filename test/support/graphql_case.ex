@@ -1,7 +1,7 @@
 defmodule AbsintheAuthTest.GraphQLCase do
   use ExUnit.CaseTemplate
 
-  defmacro __using__(opts) do
+  defmacro __using__(_) do
     quote do
       use ExUnit.Case, async: false
 
