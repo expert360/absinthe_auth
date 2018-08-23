@@ -1,5 +1,11 @@
 # AbsintheAuth
 
+![CircleCI](https://img.shields.io/circleci/project/github/expert360/absinthe_auth.svg)
+![Codecov](https://img.shields.io/codecov/c/github/expert360/absinthe_auth.svg)
+![Hex.pm](https://img.shields.io/hexpm/dt/absinthe_auth.svg)
+![Hex.pm](https://img.shields.io/hexpm/v/absinthe_auth.svg)
+[![Inline docs](http://inch-ci.org/github/expert360/absinthe_auth.svg)](http://inch-ci.org/github/expert360/absinthe_auth)
+
 (Opinionated) Authorisation framework for [Absinthe](https://hexdocs.pm/absinthe/).
 
 ## Authorisation in the Graph Layer
