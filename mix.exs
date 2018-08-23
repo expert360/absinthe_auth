@@ -9,11 +9,12 @@ defmodule AbsintheAuth.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      test_coverage: [tool: ExCoveralls],
       name: "AbsintheAuth",
       docs: [
         main: "readme",
         extras: ["README.md"]
-      ]
+      ],
     ]
   end
 
