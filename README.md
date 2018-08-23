@@ -71,7 +71,7 @@ then the normal resolution process will occur (including any middlewares you hav
 However, when you add multiple policies, at least *one* of them will need to explicitly
 allow the request or else the request will be denied.
 
-```
+```elixir
 object :movie do
   field :id, non_null(:id)
   field :title, :string
@@ -158,11 +158,12 @@ any N+1 query type issues.
 
 ```
 %{
-context: %{
-  permissions: [
-    "view",
-    "create_project"
-  ]
+  context: %{
+    permissions: [
+      "view",
+      "create_project"
+    ]
+  }
 }
 ```
 
