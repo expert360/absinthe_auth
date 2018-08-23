@@ -32,7 +32,9 @@ defmodule AbsintheAuth.MixProject do
   defp deps do
     [
       {:absinthe, "~> 1.4"},
-      {:ex_doc, "~> 0.18.4"}
+      {:ex_doc, "~> 0.18.4"},
+      {:inch_ex, ">= 0.0.0", only: :docs},
+      {:excoveralls, "~> 0.9.1", only: :test}
     ]
   end
 end

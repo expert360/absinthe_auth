@@ -1,0 +1,23 @@
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version here
+      - image: circleci/elixir:1.6
+
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - run: mix deps.get
+      - run: mix do compile --warnings-as-errors, coveralls.json
+      - run:
+          name: Running Inch CI documentation tests
+          command: |
+            MIX_ENV=docs mix deps.get
+            MIX_ENV=docs mix inch.report
+      - run:
+          name: Upload Code Coverage
+          command: |
+            bash <(curl -s https://codecov.io/bash)
