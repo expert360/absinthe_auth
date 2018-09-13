@@ -2,12 +2,22 @@ defmodule AbsintheAuth.Middleware.Policy do
   @moduledoc false
   @behaviour Absinthe.Middleware
 
-  # TODO: Handle FunctionClauseError
   def call(resolution, {module, func, opts}) do
-    if resolution.parent_type.identifier in [:query, :mutation] do
-      apply(module, func, [resolution, opts])
-    else
-      apply(module, func, [resolution, resolution.source, opts])
-    end
+    apply(
+      module,
+      func,
+      policy_args(resolution) ++ [opts]
+    )
+  end
+
+  defp policy_args(%{state: :resolved} = resolution) do
+    [resolution, resolution.value]
+  end
+  defp policy_args(%{parent_type: %{identifier: ident}} = resolution)
+  when ident in [:query, :mutation] do
+    [resolution]
+  end
+  defp policy_args(resolution) do
+    [resolution, resolution.source]
   end
 end
