@@ -17,6 +17,9 @@ defmodule Movies.Schema do
       end
     end
 
+    @desc """
+    Fetch a movie by its ID and perform pre-resolution policy checks
+    """
     field :movie, :movie do
       arg :id, non_null(:id)
       policy Permit, :view
@@ -24,6 +27,19 @@ defmodule Movies.Schema do
       resolve fn %{id: id}, _ ->
         {:ok, Database.get_movie(id)}
       end
+    end
+
+    @desc """
+    Fetch a movie by its ID and perform post-resolution policy checks
+    """
+    field :movie2, :movie do
+      arg :id, non_null(:id)
+
+      resolve fn %{id: id}, _ ->
+        {:ok, Database.get_movie(id)}
+      end
+      policy Permit, :released
+      policy Permit, :producer
     end
   end
 
@@ -44,7 +60,8 @@ defmodule Movies.Schema do
     field :id, non_null(:id)
     field :title, :string
     field :budget, :integer do
-      policy Permit, :budget
+      policy Permit, :producer
+      policy Permit, :studio_manager
     end
     field :genre, :genre do
       resolve fn _, _ ->

@@ -156,6 +156,48 @@ Of course, this second example might not be very efficient because we could end 
 it many times for a single query. If either of the functions in the `Users` module
 need to hit the database this could be problematic indeed!
 
+### Applying Policies After Resolution
+
+In general it's preferred to perform policy checks before resolution.
+And policies checking *mutations* must *always* be run before resolution.
+However, there are sometimes cases when it's helpful to resolve first and then use
+the resolved value to make a policy decision.
+
+In the following example, we define an `:article` field in the schema that returns an `Article` object.
+An `Article` has a boolean field indicating whether or not it has been published. However, we do not
+know if the article with a given ID has been published or not until we retrieve it.
+
+To solve this problem we define a policy called `Article` that defines two functions. The first,
+`published` checks to see if the article has been published while the second (which is only
+run if the first is deferred) checks to see if the viewer is the owner of the given article.
+
+Of course, if neither policy check allows the resolution then it is denied.
+
+```elixir
+field :article, :article do
+  arg :id, non_null(:id)
+  resolve &Article.find/2
+  policy Policies.Article, :published
+  policy Policies.Article, :viewer_is_owner
+end
+```
+
+```elixir
+defmodule Policies.Article do
+  use AbsintheAuth.Policy
+
+  def published(resolution, _) do
+    case resolution.value do
+      %{published: true} ->
+        allow!(resolution)
+
+      _ ->
+        defer(resolution)
+    end
+  end
+end
+```
+
 ### Prefetching Permissions or Roles
 
 An alternative is to load all the info required to verify access into the context at the start of each request.
