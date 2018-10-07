@@ -59,10 +59,19 @@ defmodule Movies.Schema do
   object :movie do
     field :id, non_null(:id)
     field :title, :string
+
+    @desc "The movie's budget"
     field :budget, :integer do
       policy Permit, :producer
       policy Permit, :studio_manager
     end
+
+    @desc "How much the movie made at the box office"
+    field :box_office, :integer do
+      policy Permit, :producer
+      policy Permit, :studio_manager
+    end
+
     field :genre, :genre do
       resolve fn _, _ ->
         {:ok, %{}} # TODO

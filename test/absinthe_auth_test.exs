@@ -10,6 +10,7 @@ defmodule AbsintheAuthTest do
       movie(id: $id) {
         title
         budget
+        boxOffice
       }
     }
   """
@@ -20,6 +21,7 @@ defmodule AbsintheAuthTest do
       |> Absinthe.run(Schema, variables: %{"id" => 1})
       |> assert_success
       |> assert_field_error(["movie", "budget"], "Denied")
+      |> assert_field_error(["movie", "boxOffice"], "Denied")
     end
 
     test "movie title is visible" do
@@ -46,6 +48,7 @@ defmodule AbsintheAuthTest do
       |> Absinthe.run(Schema, variables: %{"id" => 1}, context: context)
       |> assert_success
       |> assert_field(["movie", "budget"], 63_000_000)
+      |> assert_field(["movie", "boxOffice"], 463_000_000)
       |> assert_field(["movie", "title"], "The Matrix")
     end
   end
