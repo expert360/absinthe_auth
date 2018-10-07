@@ -41,7 +41,7 @@ defmodule AbsintheAuth.Middleware do
         resolution
 
       [] ->
-        field = String.to_atom(definition.name)
+        field = definition.schema_node.identifier
 
         # Insert default middleware
         push_middleware(resolution, {Absinthe.Middleware.MapGet, field})
