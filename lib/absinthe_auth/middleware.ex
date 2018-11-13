@@ -4,7 +4,7 @@ defmodule AbsintheAuth.Middleware do
   @behaviour Absinthe.Plugin
 
   def call(%{private: %{authorisation: :done}} = resolution, _) do
-    maybe_push_middleware(resolution)
+    maybe_append_middleware(resolution)
   end
   def call(resolution, {module, args}) do
     resolution
@@ -13,7 +13,7 @@ defmodule AbsintheAuth.Middleware do
   end
 
   def maybe_continue_authorisation(%{private: %{authorisation: :done}} = resolution) do
-    maybe_push_middleware(resolution)
+    maybe_append_middleware(resolution)
   end
 
   def maybe_continue_authorisation(%{private: %{authorisation: :pending}} = resolution) do
@@ -29,22 +29,27 @@ defmodule AbsintheAuth.Middleware do
     Absinthe.Resolution.put_result(resolution, {:error, "Denied"})
   end
 
-  def maybe_push_middleware(%{state: :resolved} = resolution) do
+  def maybe_append_middleware(%{state: :resolved} = resolution) do
     # No need to the resolution middleware if we have already resolved
     resolution
   end
-  def maybe_push_middleware(%{definition: definition} = resolution) do
-    case resolution.middleware do
-      [_ | _] ->
-        # Additional middleware remain to be processed
-        # Let's continue
-        resolution
-
-      [] ->
-        field = definition.schema_node.identifier
-
-        # Insert default middleware
-        push_middleware(resolution, {Absinthe.Middleware.MapGet, field})
+  def maybe_append_middleware(%{definition: definition} = resolution) do
+    has_no_resolution_mware? = not Enum.any?(resolution.middleware, fn
+      {{Absinthe.Middleware.MapGet, _}, _} ->
+        true
+      {{Absinthe.Resolution, _}, _} ->
+        true
+      _ ->
+        false
+    end)
+    if Enum.empty?(resolution.middleware) || has_no_resolution_mware? do
+      # We do not know if we may get a resolution out of the further middleware,
+      # the MapGet default middleware is idempotent if a resolution has
+      # already occured, so we stuff it at the end of all possible middleware
+      field = definition.schema_node.identifier
+      append_middleware(resolution, {Absinthe.Middleware.MapGet, field})
+    else
+      resolution
     end
   end
 
@@ -57,8 +62,8 @@ defmodule AbsintheAuth.Middleware do
     end)
   end
 
-  defp push_middleware(resolution, middleware) do
-    %{resolution | middleware: [middleware | resolution.middleware]}
+  defp append_middleware(resolution, middleware) do
+    %{resolution | middleware: resolution.middleware ++ [middleware]}
   end
 
   def after_resolution(exec) do

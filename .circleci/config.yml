@@ -6,12 +6,14 @@ jobs:
       - image: circleci/elixir:1.6
 
     working_directory: ~/repo
+    environment:
+      MIX_ENV: test
     steps:
       - checkout
       - run: mix local.hex --force
       - run: mix local.rebar --force
       - run: mix deps.get
-      - run: mix do compile --warnings-as-errors, coveralls.json
+      - run: MIX_ENV=test mix do compile --warnings-as-errors, coveralls.json
       - run:
           name: Running Inch CI documentation tests
           command: |
