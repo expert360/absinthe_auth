@@ -83,4 +83,14 @@ defmodule Movies.Schema do
     field :id, non_null(:id)
     field :name, non_null(:string)
   end
+
+  # These middleware do nothing but help test absinthe_auth for the case where
+  # there are other middleware at play.
+  def do_nothing(resolution, _) do
+    resolution
+  end
+
+  def middleware(middleware, _, _) do
+    middleware ++ [{{__MODULE__, :do_nothing}, []}]
+  end
 end
