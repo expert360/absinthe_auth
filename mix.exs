@@ -6,7 +6,7 @@ defmodule AbsintheAuth.MixProject do
       app: :absinthe_auth,
       name: "AbsintheAuth",
       version: "0.2.1",
-      elixir: "~> 1.6",
+      elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -38,10 +38,10 @@ defmodule AbsintheAuth.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:absinthe, "~> 1.4"},
-      {:ex_doc, "~> 0.18.4", only: [:dev, :test]},
-      {:inch_ex, ">= 0.0.0", only: :docs},
-      {:excoveralls, "~> 0.9.1", only: :test}
+      {:absinthe, "~> 1.5"},
+      {:ex_doc, "~> 0.22", only: [:dev, :test]},
+      {:inch_ex, "~> 2.0", only: :docs},
+      {:excoveralls, "~> 0.13", only: :test}
     ]
   end
 
