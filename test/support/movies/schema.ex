@@ -64,12 +64,14 @@ defmodule Movies.Schema do
     field :budget, :integer do
       policy Permit, :producer
       policy Permit, :studio_manager
+      resolve fn movie, _, _ -> {:ok, movie.budget} end
     end
 
     @desc "How much the movie made at the box office"
     field :box_office, :integer do
       policy Permit, :producer
       policy Permit, :studio_manager
+      resolve fn movie, _, _ -> {:ok, movie.box_office} end
     end
 
     field :genre, :genre do

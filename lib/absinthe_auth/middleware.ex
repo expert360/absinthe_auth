@@ -4,16 +4,38 @@ defmodule AbsintheAuth.Middleware do
   @behaviour Absinthe.Plugin
 
   def call(%{private: %{authorisation: :done}} = resolution, _) do
-    maybe_append_middleware(resolution)
+    resolution
   end
-  def call(resolution, {module, args}) do
+
+  # authorisation pending - call the policy module and check the result
+  def call(%{private: %{authorisation: :pending}} = resolution, {module, args}) do
     resolution
     |> module.call(args)
     |> maybe_continue_authorisation
   end
 
+  # No authorisation - init auth state to :pending, install middleware to reset after resolution
+  def call(%{private: private} = resolution, {module, args}) do
+    private = Map.put(private, :authorisation, :pending)
+    reset_middleware = {{AbsintheAuth.Middleware, :reset}, nil}
+
+    resolution = %{
+      resolution
+      | private: private,
+        middleware: resolution.middleware ++ [reset_middleware]
+    }
+
+    call(resolution, {module, args})
+  end
+
+  # reset the private.authorisation field in the resolution
+  def reset(%{private: private} = resolution, _) do
+    %{resolution | private: Map.delete(private, :authorisation)}
+  end
+
+  # Authorized - continue
   def maybe_continue_authorisation(%{private: %{authorisation: :done}} = resolution) do
-    maybe_append_middleware(resolution)
+    resolution
   end
 
   def maybe_continue_authorisation(%{private: %{authorisation: :pending}} = resolution) do
@@ -29,41 +51,8 @@ defmodule AbsintheAuth.Middleware do
     Absinthe.Resolution.put_result(resolution, {:error, "Denied"})
   end
 
-  def maybe_append_middleware(%{state: :resolved} = resolution) do
-    # No need to the resolution middleware if we have already resolved
-    resolution
-  end
-  def maybe_append_middleware(%{definition: definition} = resolution) do
-    has_no_resolution_mware? = not Enum.any?(resolution.middleware, fn
-      {{Absinthe.Middleware.MapGet, _}, _} ->
-        true
-      {{Absinthe.Resolution, _}, _} ->
-        true
-      _ ->
-        false
-    end)
-    if Enum.empty?(resolution.middleware) || has_no_resolution_mware? do
-      # We do not know if we may get a resolution out of the further middleware,
-      # the MapGet default middleware is idempotent if a resolution has
-      # already occured, so we stuff it at the end of all possible middleware
-      field = definition.schema_node.identifier
-      append_middleware(resolution, {Absinthe.Middleware.MapGet, field})
-    else
-      resolution
-    end
-  end
-
   def pending_authorisation_checks?(%{middleware: middleware}) do
-    Enum.any?(middleware, fn
-      {{AbsintheAuth.Middleware, :call},_} ->
-        true
-      _ ->
-        false
-    end)
-  end
-
-  defp append_middleware(resolution, middleware) do
-    %{resolution | middleware: resolution.middleware ++ [middleware]}
+    Enum.any?(middleware, &match?({{AbsintheAuth.Middleware, :call}, _}, &1))
   end
 
   def after_resolution(exec) do
